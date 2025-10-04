@@ -122,5 +122,5 @@ BracedInitializerIndentWidth: 4
 AllowAllParametersOfDeclarationOnNextLine: true
 AlignOperands: false
 Cpp11BracedListStyle: true
-BreakTemplateDeclarations: Leave
+#BreakTemplateDeclarations: Leave
 ...
