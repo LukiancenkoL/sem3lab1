@@ -62,7 +62,6 @@ add_project_arguments(
 include = include_directories('include')
 
 src = files(
-	'src/array_list.cpp',
 	'src/main.cpp',
 )
 
