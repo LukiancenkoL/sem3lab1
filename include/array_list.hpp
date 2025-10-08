@@ -63,7 +63,7 @@ public:
 		if (this->is_empty()) {
 			throw std::out_of_range("List is empty");
 		}
-		auto first = this->get_first();
+		T first = this->get_first();
 		std::memmove(this->m_data, this->m_data + 1, this->length() * sizeof(T));
 		this->m_size -= 1;
 		return first;
@@ -73,7 +73,7 @@ public:
 		if (this->is_empty()) {
 			throw std::out_of_range("List is empty");
 		}
-		auto last = this->get_last();
+		T last = this->get_last();
 		this->m_size -= 1;
 		return last;
 	}
