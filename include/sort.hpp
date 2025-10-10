@@ -1,57 +1,216 @@
-#include <iostream>
+#pragma once
+#include "list.hpp"
 #include <vector>
 #include <memory>
 #include <algorithm>
+#include <cstddef>
+#include <functional>
 
-class ISortStrategy {
-public:
-    virtual void sort(std::vector<int>& data, bool ascending) const = 0;
-    virtual ~ISortStrategy() = default;
+enum class Compare {
+	Le = -1,
+	Eq = 0,
+	Gr = 1,
 };
 
-class BubbleSort : public ISortStrategy {
-public:
-    void sort(std::vector<int>& data, bool ascending) const override {
-        for (size_t i = 0; i < data.size(); ++i)
-            for (size_t j = 0; j < data.size() - i - 1; ++j)
-                if ((ascending && data[j] > data[j+1]) || (!ascending && data[j] < data[j+1]))
-                    std::swap(data[j], data[j+1]);
-    }
-};
+// template <typename T>
+// Compare default_compare(const T& first, const T& second) {
+// 	if (first > second) {
+// 		return Compare::Gr;
+// 	}
+// 	if (first < second) {
+// 		return Compare::Le;
+// 	}
+// 	return Compare::Eq;
+// }
 
-class QuickSort : public ISortStrategy {
+template <typename T>
+class Sort {
 public:
-    void sort(std::vector<int>& data, bool ascending) const override {
-        std::sort(data.begin(), data.end(),
-            [ascending](int a, int b) { return ascending ? a < b : a > b; });
-    }
-};
+	virtual void sort(List<T>& list,
+			std::function<Compare(const T& first, const T& second)> compare =
+					default_compare) const = 0;
+	virtual ~Sort() = default;
 
-// Контекст
-class Sorter {
 private:
-    std::unique_ptr<ISortStrategy> strategy;
-public:
-    void setStrategy(std::unique_ptr<ISortStrategy> s) { strategy = std::move(s); }
-
-    void sort(std::vector<int>& data, bool ascending = true) const {
-        if (strategy)
-            strategy->sort(data, ascending);
-        else
-            std::cerr << "Sorting strategy not set!\n";
-    }
+	static Compare default_compare(const T& first, const T& second) {
+		if (first > second) {
+			return Compare::Gr;
+		}
+		if (first < second) {
+			return Compare::Le;
+		}
+		return Compare::Eq;
+	}
 };
 
-// Використання
-int main() {
-    std::vector<int> v = {5, 3, 8, 1, 2};
-    Sorter sorter;
+template <typename T>
+class InsertionSort : public Sort<T> {
+public:
+	void sort(List<T>& list,
+			std::function<Compare(const T& first, const T& second)> compare =
+					Sort<T>::default_compare) {
+		for (int i = 1; i < list.length(); i++) {
+			T key = list.get(i);
 
-    sorter.setStrategy(std::make_unique<BubbleSort>());
-    sorter.sort(v, true);
+			int j = i - 1;
+			while (j >= 0 && compare(list.get(j), key) == Compare::Gr) {
+				list.get_mut(j + 1) = list.get(j);
+				j -= 1;
+			}
 
-    sorter.setStrategy(std::make_unique<QuickSort>());
-    sorter.sort(v, false);
+			list.get_mut(j + 1) = key;
+		}
+	}
+};
 
-    for (auto i : v) std::cout << i << " ";
-}
+template <typename T>
+class MergeSort : public Sort<T> {
+public:
+	void sort(List<T>& list,
+			std::function<Compare(const T& first, const T& second)> compare =
+					Sort<T>::default_compare) {
+		merge_sort(list, 0, list.length() - 1, compare);
+	}
+
+private:
+	void merge(List<T>& list, size_t left, size_t mid, size_t right,
+			std::function<Compare(const T& first, const T& second)> compare) {
+		size_t n1 = mid - left + 1;
+		size_t n2 = right - mid;
+
+		List<T> left_list(n1);
+		List<T> right_list(n2);
+
+		for (size_t i = 0; i < n1; i++) {
+			left_list.get_mut(i) = list.get(left + i);
+		}
+		for (size_t j = 0; j < n1; j++) {
+			right_list.get_mut(j) = list.get(mid + 1 + j);
+		}
+
+		size_t i = 0;
+		size_t j = 0;
+		size_t k = left;
+
+		while (i < n1 && j < n2) {
+			if (compare(left_list.get(i), right_list.get(j)) != Compare::Gr) {
+				list.get_mut(k) = left_list.get(i);
+				i += 1;
+			} else {
+				list.get_mut(k) = right_list.get(j);
+				j += 1;
+			}
+			k += 1;
+		}
+
+		while (i < n1) {
+			list.get_mut(k) = left_list.get(i);
+			i += 1;
+			k += 1;
+		}
+		while (j < n2) {
+			list.get_mut(k) = right_list.get(j);
+			j += 1;
+			k += 1;
+		}
+	}
+
+	void merge_sort(List<T>& list, size_t left, size_t right,
+			std::function<Compare(const T& first, const T& second)> compare) {
+		if (left >= right) {
+			return;
+		}
+		size_t mid = left + (right - left) / 2;
+		mergeSort(list, left, mid);
+		mergeSort(list, mid + 1, right);
+		merge(list, left, mid, right, compare);
+	}
+};
+
+template <typename T>
+class QuickSort : public Sort<T> {
+public:
+	void sort(List<T>& list,
+			std::function<Compare(const T& first, const T& second)> compare = Sort<T>::default_compare) {
+		quick_sort(list, 0, list.length() - 1, compare);
+	}
+
+private:
+	void quick_sort(List<T>& list, int low, int high,
+			std::function<Compare(const T& first, const T& second)> compare) {
+		if (low >= high) {
+			return;
+		}
+		T& pivot1 = list.get_mut(low);
+		T& pivot2 = list.get_mut(high);
+		if (compare(pivot1, pivot2) == Compare::Gr) {
+			std::swap(pivot1, pivot2);
+		}
+
+		size_t less = low + 1;
+		size_t great = high - 1;
+		for (size_t k = less; k <= great; k++) {
+			if (compare(list.get(k), pivot1) == Compare::Le) {
+				std::swap(list.get_mut(k), list.get_mut(less));
+				less += 1;
+			} else if (compare(list.get(k), pivot2) == Compare::Gr) {
+				while (k < great && compare(list.get(great), pivot2) == Compare::Gr) {
+					great -= 1;
+				}
+				std::swap(list.get_mut(k), list.get_mut(great));
+				great -= 1;
+				if (compare(list.get(k), pivot1) == Compare::Le) {
+					std::swap(list.get_mut(k), list.get_mut(less));
+					less += 1;
+				}
+			}
+		}
+
+		std::swap(list.get_mut(less - 1), list.get_mut(low));
+		std::swap(list.get_mut(great + 1), list.get_mut(high));
+
+		// low, high must be int, not uint, because in case of length == 2
+		// low == 0, high == 1, less == 1, great == 0
+		// k == less -> k == 1 -> (k > great) -> for loop never happens
+		// (less - 2) == -1 -> underflows as unit -> (low >= high) doesn't work
+		quick_sort(list, low, less - 2, compare);
+		quick_sort(list, great + 2, high, compare);
+
+		if (compare(pivot1, pivot2) != Compare::Eq) {
+			for (size_t k = less; k <= great; k++) {
+				if (compare(list.get(k), pivot1) == Compare::Eq) {
+					std::swap(list.get_mut(k), list.get_mut(less));
+					less += 1;
+				} else if (compare(list.get(k), pivot2) == Compare::Eq) {
+					std::swap(list.get_mut(k), list.get_mut(great));
+					great -= 1;
+
+					// we need to decrement k,
+					// so the element which we swapped with List on this iteration
+					// will be compared to pivot1 on the next iteration
+					k -= 1;
+				}
+			}
+		}
+		if (compare(pivot1, pivot2) == Compare::Le) {
+			quick_sort(list, less, great, compare);
+		}
+	}
+};
+
+// class Sorter {
+// private:
+// 	std::unique_ptr<Sort> strategy;
+
+// public:
+// 	void setStrategy(std::unique_ptr<Sort> s) {
+// 		strategy = std::move(s);
+// 	}
+
+// 	void sort(std::vector<int>& data, bool ascending = true) const {
+// 		if (strategy)
+// 			strategy->sort(data, ascending);
+// 		else
+// 			std::cerr << "Sorting strategy not set!\n";
+// 	}
+// };

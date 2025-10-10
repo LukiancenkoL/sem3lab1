@@ -1,6 +1,6 @@
 #pragma once
 #include <cstddef>
- 
+
 template <typename T>
 class List {
 public:
@@ -13,9 +13,10 @@ public:
 	virtual T remove(const size_t index) = 0;
 	virtual bool is_empty() const = 0;
 	virtual const T& get(const size_t index) const = 0;
+	virtual T& get_mut(const size_t index) const = 0;
 	virtual const T& get_first() const = 0;
 	virtual const T& get_last() const = 0;
+	virtual ~List() = default;
 	//virtual bool is_sorted() const = 0;
 	//sort ??
 };
-

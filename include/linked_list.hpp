@@ -1,7 +1,6 @@
 
 #pragma once
 #include <cstddef>
-// #include <print>
 #include <stdexcept>
 #include <cstring>
 
@@ -25,6 +24,10 @@ public:
 	}
 
 	const T& get_data() {
+		return this->m_data;
+	}
+
+	T& get_data_mut() {
 		return this->m_data;
 	}
 
@@ -132,7 +135,7 @@ public:
 			return this->pop_back();
 		}
 		if (this->length() == 1) {
-            T tmp = this->get_first();
+			T tmp = this->get_first();
 			delete this->m_head;
 			this->m_head = nullptr;
 			this->m_tail = nullptr;
@@ -143,14 +146,14 @@ public:
 		for (size_t i = 0; i < index; i++) {
 			curr = curr->get_next();
 		}
-        T tmp = curr->get_data();
+		T tmp = curr->get_data();
 		Node<T>* prev = curr->get_prev();
 		Node<T>* next = curr->get_next();
 		delete curr;
 		prev->set_next(next);
 		next->set_prev(prev);
 		this->m_size -= 1;
-        return tmp;
+		return tmp;
 	}
 
 	bool is_empty() const {
@@ -173,6 +176,19 @@ public:
 		return current->get_data();
 	}
 
+	T& get_mut(const size_t index) const {
+		if (index >= this->length()) {
+			throw std::out_of_range("index is out of bounds");
+		}
+
+		Node<T>* current = this->m_head;
+		for (size_t i = 0; i < index; i++) {
+			current = current->get_next();
+		}
+
+		return current->get_data_mut();
+	}
+
 	const T& get_first() const {
 		if (this->is_empty() || this->m_head == nullptr) {
 			throw std::out_of_range("List is empty");
@@ -185,6 +201,11 @@ public:
 			throw std::out_of_range("List is empty");
 		}
 		return this->m_tail->get_data();
+	}
+
+	void replace_at(List<T>& list, size_t index, const T& value) {
+		T removed = list.remove(index);
+		list.insert(index, value);
 	}
 
 private:
