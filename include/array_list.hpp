@@ -1,16 +1,23 @@
 
 #pragma once
 
+
 #include <print>
 #include <stdexcept>
 #include <cstring>
 #include <cstddef>
 
 #include "list.hpp"
+#include "sort.hpp"
 
 template <typename T>
 class ArrayList : public List<T> {
 public:
+
+	void sort_array (const Sort<T>& sort){
+		sort.sort(*this);
+	}
+
 	size_t length() const {
 		return this->m_size;
 	}

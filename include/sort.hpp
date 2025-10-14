@@ -1,7 +1,7 @@
 #pragma once
 #include "list.hpp"
-#include <vector>
-#include <memory>
+// #include <vector>
+// #include <memory>
 #include <algorithm>
 #include <cstddef>
 #include <functional>
@@ -11,17 +11,6 @@ enum class Compare {
 	Eq = 0,
 	Gr = 1,
 };
-
-// template <typename T>
-// Compare default_compare(const T& first, const T& second) {
-// 	if (first > second) {
-// 		return Compare::Gr;
-// 	}
-// 	if (first < second) {
-// 		return Compare::Le;
-// 	}
-// 	return Compare::Eq;
-// }
 
 template <typename T>
 class Sort {
@@ -48,11 +37,11 @@ class InsertionSort : public Sort<T> {
 public:
 	void sort(List<T>& list,
 			std::function<Compare(const T& first, const T& second)> compare =
-					Sort<T>::default_compare) {
-		for (int i = 1; i < list.length(); i++) {
+					Sort<T>::default_compare) const {
+		for (size_t i = 1; i < list.length(); i++) {
 			T key = list.get(i);
 
-			int j = i - 1;
+			int32_t j = i - 1;
 			while (j >= 0 && compare(list.get(j), key) == Compare::Gr) {
 				list.get_mut(j + 1) = list.get(j);
 				j -= 1;
@@ -68,24 +57,35 @@ class MergeSort : public Sort<T> {
 public:
 	void sort(List<T>& list,
 			std::function<Compare(const T& first, const T& second)> compare =
-					Sort<T>::default_compare) {
+					Sort<T>::default_compare) const {
 		merge_sort(list, 0, list.length() - 1, compare);
 	}
 
 private:
+	void merge_sort(List<T>& list, size_t left, size_t right,
+			std::function<Compare(const T& first, const T& second)> compare) const {
+		if (left >= right) {
+			return;
+		}
+		size_t mid = left + (right - left) / 2;
+		merge_sort(list, left, mid, compare);
+		merge_sort(list, mid + 1, right, compare);
+		merge(list, left, mid, right, compare);
+	}
+
 	void merge(List<T>& list, size_t left, size_t mid, size_t right,
-			std::function<Compare(const T& first, const T& second)> compare) {
+			std::function<Compare(const T& first, const T& second)> compare) const {
 		size_t n1 = mid - left + 1;
 		size_t n2 = right - mid;
 
-		List<T> left_list(n1);
-		List<T> right_list(n2);
+		std::vector<T> left_vec(n1);
+		std::vector<T> right_vec(n2);
 
 		for (size_t i = 0; i < n1; i++) {
-			left_list.get_mut(i) = list.get(left + i);
+			left_vec[i] = list.get(left + i);
 		}
-		for (size_t j = 0; j < n1; j++) {
-			right_list.get_mut(j) = list.get(mid + 1 + j);
+		for (size_t ì = 0; ì < n1; ì++) {
+			right_vec[ì] = list.get(mid + 1 + ì);
 		}
 
 		size_t i = 0;
@@ -93,37 +93,26 @@ private:
 		size_t k = left;
 
 		while (i < n1 && j < n2) {
-			if (compare(left_list.get(i), right_list.get(j)) != Compare::Gr) {
-				list.get_mut(k) = left_list.get(i);
+			if (compare(left_vec[i], right_vec[j]) != Compare::Gr) {
+				list.get_mut(k) = left_vec[i];
 				i += 1;
 			} else {
-				list.get_mut(k) = right_list.get(j);
+				list.get_mut(k) = right_vec[j];
 				j += 1;
 			}
 			k += 1;
 		}
 
 		while (i < n1) {
-			list.get_mut(k) = left_list.get(i);
+			list.get_mut(k) = left_vec[i];
 			i += 1;
 			k += 1;
 		}
 		while (j < n2) {
-			list.get_mut(k) = right_list.get(j);
+			list.get_mut(k) = right_vec[j];
 			j += 1;
 			k += 1;
 		}
-	}
-
-	void merge_sort(List<T>& list, size_t left, size_t right,
-			std::function<Compare(const T& first, const T& second)> compare) {
-		if (left >= right) {
-			return;
-		}
-		size_t mid = left + (right - left) / 2;
-		mergeSort(list, left, mid);
-		mergeSort(list, mid + 1, right);
-		merge(list, left, mid, right, compare);
 	}
 };
 
@@ -131,13 +120,14 @@ template <typename T>
 class QuickSort : public Sort<T> {
 public:
 	void sort(List<T>& list,
-			std::function<Compare(const T& first, const T& second)> compare = Sort<T>::default_compare) {
+			std::function<Compare(const T& first, const T& second)> compare =
+					Sort<T>::default_compare) const {
 		quick_sort(list, 0, list.length() - 1, compare);
 	}
 
 private:
 	void quick_sort(List<T>& list, int low, int high,
-			std::function<Compare(const T& first, const T& second)> compare) {
+			std::function<Compare(const T& first, const T& second)> compare) const {
 		if (low >= high) {
 			return;
 		}
@@ -197,20 +187,3 @@ private:
 		}
 	}
 };
-
-// class Sorter {
-// private:
-// 	std::unique_ptr<Sort> strategy;
-
-// public:
-// 	void setStrategy(std::unique_ptr<Sort> s) {
-// 		strategy = std::move(s);
-// 	}
-
-// 	void sort(std::vector<int>& data, bool ascending = true) const {
-// 		if (strategy)
-// 			strategy->sort(data, ascending);
-// 		else
-// 			std::cerr << "Sorting strategy not set!\n";
-// 	}
-// };

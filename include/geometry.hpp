@@ -27,6 +27,11 @@ public:
 		this->m_y = value;
 	}
 
+	void set_point(float x, float y) {
+		m_x = x;
+		m_y = y;
+	}
+
 	void move(float x, float y) {
 		this->m_x += x;
 		this->m_y += y;
@@ -194,7 +199,7 @@ class Polygon : public Shape {
 	}
 
 	void move(float x, float y) {
-		for (size_t i = 0; i < vertices.length(); i++){
+		for (size_t i = 0; i < vertices.length(); i++) {
 			vertices.get_mut(i).move(x, y);
 		}
 	}

@@ -203,10 +203,6 @@ public:
 		return this->m_tail->get_data();
 	}
 
-	void replace_at(List<T>& list, size_t index, const T& value) {
-		T removed = list.remove(index);
-		list.insert(index, value);
-	}
 
 private:
 	Node<T>* m_head;

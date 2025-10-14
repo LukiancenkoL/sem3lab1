@@ -67,11 +67,13 @@ src = files(
 
 #subdir('src')
 
+# Dependencies (from gtest.wrap)
+gtest = dependency('gtest')
 executable(
 	'sem3lab1',
 	src,
 	include_directories: [include],
-	#dependencies: [deps],
+	dependencies: [gtest],
 	#link_with: [libs],
 	#install: true
 )

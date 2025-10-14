@@ -17,6 +17,4 @@ public:
 	virtual const T& get_first() const = 0;
 	virtual const T& get_last() const = 0;
 	virtual ~List() = default;
-	//virtual bool is_sorted() const = 0;
-	//sort ??
 };
